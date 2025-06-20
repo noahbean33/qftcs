@@ -1,5 +1,14 @@
-Official Outline: Algebraic Quantum Field Theory in Curved Spacetime Library (aqft-cs)
-I. Project Overview
+# Algebraic Quantum Field Theory in Curved Spacetime Library (aqft-cs)
+
+## I. Current Project Status
+
+This project is currently under active development with two parallel implementations:
+
+1.  **Python (Symbolic) Frontend:** Located in `src/aqft_curved/`, this implementation uses `sympy` to provide a purely symbolic framework for defining spacetimes and fields. It is well-suited for theoretical analysis and deriving analytical expressions.
+2.  **Rust (Numerical) Backend:** Located in `rust/aqft_core/`, this implementation provides a high-performance numerical engine for field theory calculations. It includes numerically implemented equations of motion and stress-energy tensors for scalar, charged scalar, and electromagnetic fields.
+
+**Note:** The integration of the Rust backend into the Python package is currently on hold. The two components are developed and tested independently. You can run the Rust-specific tests by navigating to `rust/aqft_core` and running `cargo test`.
+## II. Project Overview
 A. Vision (Enhanced Precision)
 To provide a robust, efficient, and user-friendly computational framework for Algebraic Quantum Field Theory (AQFT) in curved spacetimes (QFTCS), specifically addressing the current gap in dedicated tools. The library will empower physicists to define, manipulate, and analyze quantum fields on complex curved backgrounds, offering a seamless symbolic-to-numerical pipeline to bridge theoretical insights with practical computation and ensure scientific integrity within the semiclassical approximation.
 
@@ -17,9 +26,9 @@ Theoretical physicists, mathematical physicists, and graduate students working o
 
 E. Key Technologies and Dependencies
 Python Frontend: NumPy (numerical arrays), SymPy (symbolic mathematics), SciPy (scientific computing), Matplotlib (visualization), Pandas (data handling).
-Rust Backend: nalgebra (linear algebra), symengine-rs (Rust bindings for SymEngine for symbolic computations), rayon (parallelism).
+Rust Backend: nalgebra (linear algebra), num-complex (complex numbers).
 Interoperability: PyO3 or Maturin for efficient Python-Rust bindings.
-II. Architecture
+## III. Architecture
 A. Python Front-End (aqft_py)
 Purpose: User-facing API, high-level abstractions, symbolic expression input and output, data manipulation, visualization, and scripting. Acts as the orchestrator for the symbolic-to-numerical workflow.
 Key Libraries/Tools: PyO3 (for FFI), NumPy, SciPy, SymPy (for initial symbolic expression building and fallback), Matplotlib, Plotly, Pandas.
@@ -62,7 +71,7 @@ aqft_curved/
 E. Numerical Precision and Complex Data Types
 (MVP) Arbitrary Precision: Support for arbitrary-precision arithmetic (e.g., via Rust's rug crate leveraging GMP/MPFR/MPC) for calculations where standard floating-point precision (f64) may lead to significant errors or instabilities, especially in long-term simulations or near singularities. User-configurable precision levels.
 (MVP) Complex Numbers: Robust and efficient handling of complex numbers throughout the Rust backend using dedicated crates (e.g., num-complex / crum), essential for quantum amplitudes and field theory. Ensure seamless mapping and transfer of complex data types across the FFI.
-III. Core Modules (Rust Backend with Python Bindings)
+## IV. Core Modules (High-Level Design)
 A. Python Frontend (aqft_py) Modules
 1. aqft_curved.spacetime
 Purpose: Define and manipulate curved spacetimes, allowing for symbolic or numerical metric definitions, and providing tools for differential geometry.
