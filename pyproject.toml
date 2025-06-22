@@ -9,11 +9,12 @@ description = "A library for Algebraic Quantum Field Theory in Curved Spacetime"
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
-    "numpy",
+    "numpy==2.2.0",
     "sympy",
     "scipy",
     "pandas",
     "matplotlib",
+    "astropy",
 ]
 
 [tool.setuptools.packages.find]

@@ -1,5 +1,16 @@
+import sys
+import os
 import sympy
 from sympy import diff, Array
+
+# Add vendored einsteinpy to the path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'vendor')))
+
+try:
+    from einsteinpy.symbolic import MetricTensor, ChristoffelSymbols, RiemannCurvatureTensor, RicciTensor, RicciScalar
+except ImportError as e:
+    print("Could not import EinsteinPy. Make sure it is installed or vendored correctly.")
+    raise e
 
 class CoordinateChart:
     """Manages local coordinate systems and transformations."""
@@ -55,100 +66,60 @@ class Spacetime:
             self._inverse_metric = self.metric.inv()
         return self._inverse_metric
 
+    def _get_einsteinpy_metric(self):
+        """Helper to create an einsteinpy MetricTensor instance."""
+        if self.metric is None:
+            raise ValueError("Metric is not set.")
+        return MetricTensor(Array(self.metric), self.coords)
+
     def christoffel_symbols(self):
         """
-        Computes the Christoffel symbols of the second kind (Gamma^k_ij).
+        Computes the Christoffel symbols of the second kind (Gamma^k_ij) using EinsteinPy.
 
         Returns:
             sympy.Array: A 3D array containing the Christoffel symbols.
         """
         if self._christoffel is None:
-            if self.metric is None:
-                raise ValueError("Metric is not set.")
-            
-            g_inv = self.inverse_metric
-            g = self.metric
-            n = self.dimension
-            coords = self.coords
-            
-            chris = sympy.MutableDenseNDimArray.zeros(n, n, n)
-            
-            dg = Array([[[diff(g[i, j], coords[k]) for k in range(n)] for j in range(n)] for i in range(n)])
-
-            for k in range(n):
-                for i in range(n):
-                    for j in range(n):
-                        s = 0
-                        for l in range(n):
-                            term1 = dg[l, j, i]
-                            term2 = dg[i, l, j]
-                            term3 = dg[i, j, l]
-                            s += g_inv[k, l] * (term1 + term2 - term3) / 2
-                        chris[k, i, j] = s
-            self._christoffel = sympy.Array(chris)
+            e_metric = self._get_einsteinpy_metric()
+            # The result from EinsteinPy is an object, call .tensor() to get the array
+            self._christoffel = ChristoffelSymbols.from_metric(e_metric).tensor()
         return self._christoffel
 
     def riemann_tensor(self):
         """
-        Computes the Riemann curvature tensor (R^rho_sigma_mu_nu).
+        Computes the Riemann curvature tensor (R^rho_sigma_mu_nu) using EinsteinPy.
 
         Returns:
             sympy.Array: A 4D array containing the Riemann tensor components.
         """
-        if self.metric is None:
-            raise ValueError("Metric is not set.")
-        
-        n = self.dimension
-        coords = self.coords
-        chris = self.christoffel_symbols()
-        
-        riemann = sympy.MutableDenseNDimArray.zeros(n, n, n, n)
-        
-        d_chris = Array([[[[diff(chris[i, j, k], coords[l]) for l in range(n)] for k in range(n)] for j in range(n)] for i in range(n)])
-
-        for rho in range(n):
-            for sigma in range(n):
-                for mu in range(n):
-                    for nu in range(n):
-                        term1 = d_chris[rho, nu, sigma, mu]
-                        term2 = d_chris[rho, mu, sigma, nu]
-                        
-                        term3 = 0
-                        for lam in range(n):
-                            term3 += chris[rho, lam, mu] * chris[lam, nu, sigma]
-                        
-                        term4 = 0
-                        for lam in range(n):
-                            term4 += chris[rho, lam, nu] * chris[lam, mu, sigma]
-                            
-                        riemann[rho, sigma, mu, nu] = term1 - term2 + term3 - term4
-                        
-        return sympy.Array(riemann)
+        e_metric = self._get_einsteinpy_metric()
+        # The result from EinsteinPy is an object, call .tensor() to get the array
+        # By default, it returns with config 'ulll', which matches our old implementation's indices
+        return RiemannCurvatureTensor.from_metric(e_metric).tensor()
 
     def ricci_tensor(self):
         """
-        Computes the Ricci curvature tensor (R_mu_nu).
+        Computes the Ricci curvature tensor (R_mu_nu) using EinsteinPy.
 
         Returns:
             sympy.Matrix: A 2D matrix containing the Ricci tensor components.
         """
-        riemann = self.riemann_tensor()
-        n = self.dimension
-        ricci = sympy.MutableDenseNDimArray.zeros(n, n)
-        for mu in range(n):
-            for nu in range(n):
-                s = 0
-                for rho in range(n):
-                    s += riemann[rho, mu, rho, nu]
-                ricci[mu, nu] = s
-        return sympy.Matrix(ricci)
+        e_metric = self._get_einsteinpy_metric()
+        # The result from EinsteinPy is an object, call .tensor() to get the array
+        # Returns with 'll' config by default
+        ricci_obj = RicciTensor.from_metric(e_metric)
+        return sympy.Matrix(ricci_obj.tensor())
 
     def ricci_scalar(self):
-        """Computes the Ricci scalar (R)."""
-        ricci = self.ricci_tensor()
-        g_inv = self.inverse_metric
-        R = (g_inv.T * ricci).trace()
-        return sympy.simplify(R)
+        """
+        Computes the Ricci scalar (R) using EinsteinPy.
+
+        Returns:
+            sympy.Expr: The symbolic expression for the Ricci scalar.
+        """
+        e_metric = self._get_einsteinpy_metric()
+        # The result from EinsteinPy is an object, call .expr to get the expression
+        return RicciScalar.from_metric(e_metric).expr
 
     def covariant_divergence(self, contravariant_vector):
         """

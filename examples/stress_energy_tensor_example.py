@@ -31,7 +31,7 @@ def run_stress_energy_tensor_example():
     xi_sym = sympy.Symbol('xi')
 
     print(f"\nDefining a scalar field with mass m={m_sym} and coupling xi={xi_sym}...")
-    scalar_field = ScalarField(spacetime=minkowski_spacetime, mass=m_sym, coupling_xi=xi_sym)
+    scalar_field = ScalarField(spacetime=minkowski_spacetime, name='phi', mass=m_sym, coupling_xi=xi_sym)
     print(f"Scalar field symbol: {scalar_field.name}")
 
     # 3. Compute Stress-Energy Tensor

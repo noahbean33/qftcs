@@ -1,8 +1,13 @@
 import sympy
 from sympy import Eq
 from sympy.physics.quantum import Commutator
+from functools import reduce
+import operator
+
 from .field import FieldOperator
 from .spacetime import Spacetime
+from .quantum_state import QuantumState, qeye
+
 
 class OperatorAlgebra:
     """
@@ -53,31 +58,70 @@ class OperatorAlgebra:
 
 class CausalRegion:
     """
-    Represents a region in spacetime, essential for defining local algebras
-    and enforcing the principle of locality.
+    Represents a hyperrectangular region in spacetime, defined by coordinate ranges.
+    This is essential for defining local algebras and enforcing locality.
     """
-    def __init__(self, spacetime, definition_func):
+    def __init__(self, spacetime, ranges):
         """
         Initializes a CausalRegion.
 
         Parameters:
             spacetime (Spacetime): The spacetime containing the region.
-            definition_func (callable): A function that takes coordinate symbols
-                                     and returns a boolean expression defining the region.
-                                     Example: lambda t, x, y, z: (x > 0) & (t < 5)
+            ranges (dict): A dictionary mapping coordinate symbols to (min, max) tuples.
+                         Example: {t: (0, 1), x: (0, L)}
         """
         if not isinstance(spacetime, Spacetime):
             raise TypeError("spacetime must be an instance of the Spacetime class.")
         self.spacetime = spacetime
-        self.definition = definition_func(*spacetime.coords)
+        self.ranges = ranges
+
+        # Verify that all coordinates in ranges are part of the spacetime
+        for coord in ranges:
+            if coord not in spacetime.coords:
+                raise ValueError(f"Coordinate {coord} not found in spacetime coordinates.")
+
+    def __repr__(self):
+        range_str = ', '.join([f"{k}: {v}" for k, v in self.ranges.items()])
+        return f"CausalRegion({range_str})"
 
     def is_causally_separated(self, other_region):
         """
-        Checks if this region is causally separated from another (placeholder).
-        This requires computing light cones, which is a non-trivial task.
+        Checks if this region is causally separated from another region.
+
+        For Minkowski spacetime, this is true if all points in this region are
+        spacelike separated from all points in the other region.
+
+        Returns:
+            bool: True if the regions are causally separated, False otherwise.
         """
-        print(f"Placeholder for checking causal separation.")
-        return None
+        if self.spacetime.name != 'Minkowski':
+            raise NotImplementedError("Causal separation check is only implemented for Minkowski spacetime.")
+
+        if not isinstance(other_region, CausalRegion):
+            raise TypeError("Can only check separation with another CausalRegion.")
+
+        # The squared interval is ds^2 = -dt^2 + dx^2 + dy^2 + dz^2
+        # For separation, we need ds^2 > 0 for all pairs of points.
+        # This is equivalent to min(dx^2 + dy^2 + dz^2) > max(dt^2).
+
+        t_coord = self.spacetime.coords[0]
+        spatial_coords = self.spacetime.coords[1:]
+
+        # Calculate the maximum squared time difference
+        r1_t_min, r1_t_max = self.ranges.get(t_coord, (0, 0))
+        r2_t_min, r2_t_max = other_region.ranges.get(t_coord, (0, 0))
+        max_dt_sq = max(r1_t_min - r2_t_max, r2_t_min - r1_t_max, 0)**2
+
+        # Calculate the minimum squared spatial distance
+        min_dist_sq = 0
+        for coord in spatial_coords:
+            r1_min, r1_max = self.ranges.get(coord, (0, 0))
+            r2_min, r2_max = other_region.ranges.get(coord, (0, 0))
+            # Distance between two intervals [a,b] and [c,d] is max(0, c-b, a-d)
+            d = max(0, r1_min - r2_max, r2_min - r1_max)
+            min_dist_sq += d**2
+
+        return min_dist_sq > max_dt_sq
 
 class AlgebraicProduct:
     """
@@ -93,6 +137,30 @@ class AlgebraicProduct:
         if not all(isinstance(op, FieldOperator) for op in operators):
             raise TypeError("All items in the product must be FieldOperators.")
         self.operators = tuple(operators)
+
+    def to_numerical(self, hilbert_dim):
+        """
+        Converts the product of operators to its numerical QuantumState representation.
+
+        Parameters:
+            hilbert_dim (int): The dimension of the Hilbert space.
+
+        Returns:
+            QuantumState: The numerical representation of the operator product.
+        """
+        if not self.operators:
+            return qeye(hilbert_dim)
+
+        if not all(hasattr(op, 'to_numerical') for op in self.operators):
+            raise NotImplementedError(
+                "Cannot create numerical representation: "
+                "not all operators in the product have a 'to_numerical' method."
+            )
+
+        numerical_ops = [op.to_numerical(hilbert_dim) for op in self.operators]
+        
+        # Use reduce to multiply all operators in the list
+        return reduce(operator.matmul, numerical_ops)
 
     def simplify(self, algebra):
         """

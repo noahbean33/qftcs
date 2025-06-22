@@ -1,20 +1,38 @@
 import sympy
 from .spacetime import Spacetime
+from .quantum_state import create, destroy
 
 class FieldOperator:
     """
     Represents an abstract field operator in AQFT.
     """
-    def __init__(self, name, spacetime):
+    def __init__(self, name, spacetime, is_creation=None):
         """
         Initializes a FieldOperator.
 
         Parameters:
             name (str): The symbolic name of the operator.
             spacetime (Spacetime): The spacetime on which the operator is defined.
+            is_creation (bool, optional): True for creation operator, False for annihilation.
+                                          None for operators that are not simple creators/destroyers.
         """
         self.name = name
         self.spacetime = spacetime
+        self.is_creation = is_creation
+
+    def to_numerical(self, hilbert_dim):
+        """
+        Returns the numerical QuantumState matrix for this operator.
+        """
+        if self.is_creation is True:
+            return create(hilbert_dim)
+        elif self.is_creation is False:
+            return destroy(hilbert_dim)
+        else:
+            raise NotImplementedError(
+                f"Numerical representation for operator '{self.name}' is not defined. "
+                "Only simple creation/annihilation operators are supported."
+            )
 
     def apply(self, state):
         """Applies the operator to a given state (placeholder)."""
@@ -22,9 +40,16 @@ class FieldOperator:
         return None
 
     def conjugate(self):
-        """Returns the conjugate of the operator (placeholder)."""
-        print(f"Returning conjugate of operator {self.name} (not implemented).")
-        return FieldOperator(f"{self.name}^*", self.spacetime)
+        """Returns the conjugate of the operator."""
+        if self.is_creation is not None:
+            # Conjugate of a creation op is an annihilation op, and vice-versa
+            new_is_creation = not self.is_creation
+            new_name = f"{self.name}^*"
+            return FieldOperator(new_name, self.spacetime, is_creation=new_is_creation)
+        else:
+            # For more complex operators, conjugation is more involved
+            print(f"Returning conjugate of operator {self.name} (not implemented).")
+            return FieldOperator(f"{self.name}^*", self.spacetime)
 
     def __repr__(self):
         return str(self.name)

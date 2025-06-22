@@ -12,11 +12,13 @@ from .quantization import CanonicalQuantization
 from . import state
 from . import algebra
 from . import utils
+from . import category
 
 __all__ = [
     "spacetime",
     "field",
     "state",
-    "algebra",
+        "algebra",
+    "category",
     "utils",
 ]
