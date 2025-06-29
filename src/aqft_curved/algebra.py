@@ -180,3 +180,27 @@ class AlgebraicProduct:
             return AlgebraicProduct(self.operators + (other,))
         else:
             return NotImplemented
+
+    def __rmul__(self, other):
+        if isinstance(other, FieldOperator):
+            return AlgebraicProduct((other,) + self.operators)
+        else:
+            return NotImplemented
+
+    def to_numerical(self, hilbert_dim):
+        """
+        Converts the algebraic product into its numerical matrix representation.
+
+        Parameters:
+            hilbert_dim (int): The dimension of the Hilbert space.
+
+        Returns:
+            QuantumState: A numerical representation of the operator product.
+        """
+        from functools import reduce
+        import operator
+
+        # Convert each operator in the product to its numerical form and multiply them
+        # using matrix multiplication (@).
+        numerical_ops = [op.to_numerical(hilbert_dim) for op in self.operators]
+        return reduce(operator.matmul, numerical_ops)
