@@ -1,5 +1,5 @@
 import sympy
-from aqft_curved.spacetime import Spacetime, PredefinedSpacetime
+from aqft.spacetime import Spacetime, PredefinedSpacetime
 
 def test_spacetime_instantiation():
     """Tests basic instantiation of the Spacetime class."""

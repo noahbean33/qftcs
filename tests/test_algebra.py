@@ -2,9 +2,9 @@ import sympy
 from sympy import Eq, Symbol
 from sympy.physics.quantum import Commutator
 
-from aqft_curved.field import FieldOperator
-from aqft_curved.algebra import OperatorAlgebra, CausalRegion, AlgebraicProduct
-from aqft_curved.spacetime import PredefinedSpacetime
+from aqft.field import FieldOperator
+from aqft.algebra import OperatorAlgebra, CausalRegion, AlgebraicProduct
+from aqft.spacetime import PredefinedSpacetime
 
 def test_operator_algebra_commutator():
     """Tests the commutator calculation in OperatorAlgebra."""

@@ -7,7 +7,7 @@ quantity, the Ricci scalar.
 """
 
 import sympy
-from aqft_curved.spacetime import PredefinedSpacetime
+from aqft.spacetime import PredefinedSpacetime
 
 def run_minkowski_example():
     """Initializes Minkowski spacetime and computes its Ricci scalar."""

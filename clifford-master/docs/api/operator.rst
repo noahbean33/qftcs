@@ -1,1 +1,0 @@
-.. automodule:: clifford.operator

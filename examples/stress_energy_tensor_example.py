@@ -6,8 +6,8 @@ try:
 except ImportError:
     sympy.init_printing(use_unicode=False)
 
-from aqft_curved.spacetime import PredefinedSpacetime
-from aqft_curved.field import ScalarField
+from aqft.spacetime import PredefinedSpacetime
+from aqft.field import ScalarField
 
 def run_stress_energy_tensor_example():
     """

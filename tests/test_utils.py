@@ -10,8 +10,8 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from aqft_curved.spacetime import PredefinedSpacetime
-from aqft_curved.utils import export_to_csv, load_from_csv, plot_metric_component
+from aqft.spacetime import PredefinedSpacetime
+from aqft.utils import export_to_csv, load_from_csv, plot_metric_component
 
 def test_csv_export_import(tmp_path):
     """

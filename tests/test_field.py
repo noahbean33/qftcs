@@ -1,7 +1,8 @@
 import sympy
+import numpy as np
 
-from aqft_curved.spacetime import PredefinedSpacetime
-from aqft_curved.field import ScalarField
+from aqft.spacetime import PredefinedSpacetime
+from aqft.field import ScalarField
 
 def test_scalar_field_eom_minkowski():
     """
@@ -59,3 +60,39 @@ def test_scalar_field_eom_massive():
     # Check that the computed EOM matches the expected one
     assert sympy.simplify(eom.lhs - expected_eom.lhs) == 0
     assert eom.rhs == 0
+
+def test_solve_radial_equation():
+    """
+    Tests the numerical radial solver for a scalar field in Schwarzschild spacetime.
+    This test ensures the solver runs without errors and returns arrays of the correct shape.
+    """
+    # 1. Setup spacetime and field
+    schwarzschild = PredefinedSpacetime(name='Schwarzschild', M=1)
+    scalar_field = ScalarField(spacetime=schwarzschild, name='phi', mass=0.0)
+
+    # 2. Set parameters
+    omega = 0.5
+    l = 1
+    r_start = 2.1
+    r_end = 20.0
+    num_points = 100
+    initial_conditions = [1.0, 0.0]
+
+    # 3. Solve the equation
+    r_vals, R_vals = scalar_field.solve_radial_equation(
+        omega=omega,
+        l=l,
+        r_start=r_start,
+        r_end=r_end,
+        initial_conditions=initial_conditions,
+        num_points=num_points
+    )
+
+    # 4. Assertions
+    assert isinstance(r_vals, np.ndarray)
+    assert isinstance(R_vals, np.ndarray)
+    assert r_vals.shape == (num_points,)
+    assert R_vals.shape == (num_points,)
+    assert np.isclose(r_vals[0], r_start)
+    assert np.isclose(R_vals[0], initial_conditions[0])
+

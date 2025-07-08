@@ -8,9 +8,9 @@ try:
 except ImportError:
     sympy.init_printing(use_unicode=False)
 
-from aqft_curved.spacetime import PredefinedSpacetime
-from aqft_curved.field import ScalarField
-from aqft_curved.utils import plot_metric_component
+from aqft.spacetime import PredefinedSpacetime
+from aqft.field import ScalarField
+from aqft.utils import plot_metric_component
 
 def run_schwarzschild_scalar_field_tutorial():
     """
@@ -44,7 +44,7 @@ def run_schwarzschild_scalar_field_tutorial():
     # We use the spacetime with symbolic M for deriving the EOM, as it's more general.
     # The scalar field 'phi' will depend on (t, r, theta, phi)
     # The name 'phi' is assigned by default within the ScalarField constructor.
-    scalar_field = ScalarField(spacetime=schwarzschild_spacetime_symbolic_M, mass=0)
+    scalar_field = ScalarField(spacetime=schwarzschild_spacetime_symbolic_M, name='phi', mass=0)
     print(f"Scalar field symbol: {scalar_field.name}")
 
     # 3. Compute Klein-Gordon Equation

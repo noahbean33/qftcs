@@ -1,6 +1,6 @@
 import numpy as np
-from aqft_curved.spacetime import PredefinedSpacetime
-from aqft_curved.utils import plot_metric_component
+from aqft.spacetime import PredefinedSpacetime
+from aqft.utils import plot_metric_component
 
 def run_plot_schwarzschild_example():
     """

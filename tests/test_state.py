@@ -1,10 +1,10 @@
 import sympy
 import pytest
 
-from aqft_curved.spacetime import PredefinedSpacetime
-from aqft_curved.field import FieldOperator, ScalarField
-from aqft_curved.state import State, VacuumState
-from aqft_curved.algebra import AlgebraicProduct
+from aqft.spacetime import PredefinedSpacetime
+from aqft.field import FieldOperator, ScalarField
+from aqft.state import State, VacuumState
+from aqft.algebra import AlgebraicProduct
 
 def test_state_instantiation():
     """Tests basic instantiation of the State class."""

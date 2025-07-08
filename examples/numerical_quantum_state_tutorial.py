@@ -1,7 +1,7 @@
 """
 Numerical Quantum State Tutorial
 
-This tutorial demonstrates how to work with numerical quantum states in the aqft_py library.
+This tutorial demonstrates how to work with numerical quantum states in the aqft library.
 It covers:
 1. Creating a numerical vacuum state.
 2. Defining annihilation and creation operators.
@@ -10,10 +10,10 @@ It covers:
 """
 
 import numpy as np
-from aqft_curved.spacetime import PredefinedSpacetime
-from aqft_curved.field import FieldOperator, ScalarField
-from aqft_curved.state import VacuumState
-from aqft_curved.algebra import AlgebraicProduct
+from aqft.spacetime import PredefinedSpacetime
+from aqft.field import FieldOperator, ScalarField
+from aqft.state import VacuumState
+from aqft.algebra import AlgebraicProduct
 
 def main():
     # Define a Hilbert space dimension
@@ -58,7 +58,7 @@ def main():
     one_particle_state_numerical.normalize() # Normalize the state
     
     # Create a new State object for the one-particle state
-    from aqft_curved.state import State
+    from aqft.state import State
     one_particle_state = State(field=field, numerical_state=one_particle_state_numerical, hilbert_dim=hilbert_dim)
 
     print("\nOne-particle state |1> = a_dag|0>:")
