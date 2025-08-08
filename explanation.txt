@@ -1,0 +1,355 @@
+The aqft-cs library is an ambitious project that aims to create a robust, efficient, and user-friendly computational framework for Algebraic Quantum Field Theory (AQFT) in curved spacetimes (QFTCS). This library will fill a critical gap in currently available tools by providing physicists with the means to define, manipulate, and analyze quantum fields within complex curved backgrounds. It emphasizes a seamless symbolic-to-numerical pipeline, bridging theoretical concepts with practical computations while maintaining scientific rigor within the semiclassical approximation.
+
+-----
+
+## Project Overview
+
+### Vision
+
+The core vision for aqft-cs is to provide **enhanced precision** in AQFT in curved spacetimes, offering a comprehensive and reliable computational environment for defining, manipulating, and analyzing quantum fields on diverse curved backgrounds.
+
+### Core Principles
+
+The project is built upon several core principles to ensure its effectiveness and utility:
+
+  * **Simplicity & User-Friendliness (Python Frontend)**: An intuitive API, clear documentation, and examples will facilitate quick adoption by physicists. It will integrate smoothly with the existing scientific Python ecosystem (NumPy, SciPy, SymPy) for high-level analysis and initial computations.
+  * **Performance & Reliability (C++ Backend)**: The C++ backend will handle high-performance computations, efficient memory management, and concurrency for demanding tasks. This includes large-scale tensor algebra, numerical solutions of hyperbolic partial differential equations (PDEs), high-dimensional integrals, and rigorous renormalization procedures. It leverages C++'s speed and mature libraries, with built-in parallelism via OpenMP.
+  * **Mathematical Rigor & Fidelity**: The library will strictly adhere to the mathematical foundations of AQFT and General Relativity, encompassing algebras of local observables (Weyl, CAR), Hadamard states, operator products, and the semi-classical Einstein equation. It will explicitly address vacuum ambiguity by allowing the selection and construction of relevant vacua.
+  * **Modularity & Extensibility**: Components for geometry, algebra, and QFT layers will be decoupled to allow for future additions of spacetimes, field types, and methods. This design promotes community contributions and interoperability with external libraries (e.g., FEniCS, deal.II, or PETSc for PDE solvers).
+  * **Professionalism & Reproducibility**: The project emphasizes high-quality, well-tested code with clear error handling, aiming for reproducible results and robust diagnostics (e.g., warnings near the Planck scale or singularities).
+
+### Scope and Simplicity
+
+The initial focus will be on free fields and linearized gravity to establish robustness, with plans to expand to interacting theories later. The library will address common research needs, such as solving Klein-Gordon equations in specific backgrounds.
+
+### Target Audience
+
+The primary target audience includes theoretical physicists, mathematical physicists, and graduate students specializing in quantum field theory in curved spacetimes, cosmology, and quantum gravity.
+
+### Key Technologies and Dependencies
+
+  * **Python Frontend**: NumPy (numerical arrays), SymPy (symbolic mathematics), SciPy (scientific computing), Matplotlib (visualization), Pandas (data handling).
+  * **C++ Backend**: Eigen (linear algebra and tensors), GiNaC/SymEngine (symbolic computations), OpenMP (parallelism), GSL/PETSc (numerical solvers).
+  * **Interoperability**: pybind11 for seamless Python-C++ bindings, supporting modern C++ features.
+  * **C++ Standard**: C++20 is the primary target for modern features, with a fallback to C++17 for broader compatibility.
+
+-----
+
+## Architecture
+
+The aqft-cs library adopts a hybrid Python-C++ architecture to combine user-friendliness with high performance.
+
+### Python Front-End (aqft\_py)
+
+This layer provides the user-facing API for high-level abstractions, symbolic input/output, data manipulation, visualization, and scripting. It orchestrates workflows by interacting with the C++ backend via pybind11 and leverages standard Python scientific libraries.
+
+### C++ Back-End (aqft\_cpp)
+
+The C++ backend serves as the core computational engine, handling complex operations such as tensor algebra, differential geometry, numerical methods, and non-commutative operator algebra. It relies on libraries like Eigen, GiNaC/SymEngine, and OpenMP for its performance.
+
+### Interoperability (Bindings Layer)
+
+  * **Mechanism**: pybind11 facilitates seamless C++-Python bindings.
+  * **Data Exchange**: It supports zero-copy data exchange for numerical data (Eigen to NumPy) and provides custom casters for more complex structures.
+  * **Error Handling**: C++ exceptions are propagated to Python with informative messages, for example, indicating when a "Metric is singular at point X."
+
+### Directory Structure
+
+```
+aqft_curved/
+├── python/                 # Python front-end
+│   ├── aqft_curved/        # Main Python package
+│   │   ├── __init__.py
+│   │   ├── spacetime.py    # Spacetime definitions
+│   │   ├── field.py        # Quantum field operations
+│   │   ├── algebra.py      # Operator algebras
+│   │   ├── state.py        # States and correlation functions
+│   │   └── utils.py        # Plotting, I/O, utilities
+│   ├── tests/              # Python unit tests
+│   └── pyproject.toml      # Python project configuration (scikit-build-core)
+├── cpp/                    # C++ back-end
+│   ├── include/            # Headers
+│   │   ├── metric.h        # Metric and geometry
+│   │   ├── algebra.h       # Operator algebra
+│   │   ├── numerical.h     # Numerical solvers
+│   │   └── symbolic.h      # Symbolic manipulations
+│   ├── src/                # Source code
+│   │   ├── metric.cpp
+│   │   ├── algebra.cpp
+│   │   ├── numerical.cpp
+│   │   └── symbolic.cpp
+│   ├── tests/              # C++ unit tests
+│   └── CMakeLists.txt      # C++ build configuration
+├── docs/                   # Documentation
+│   ├── api/                # API reference (generated)
+│   ├── tutorials/          # Jupyter notebooks
+│   └── user_guide.md       # User guide
+├── examples/               # Example scripts and notebooks
+├── README.md               # Project overview and installation
+├── LICENSE                 # Licensing information
+└── .gitignore              # Standard Git ignore file
+```
+
+### Numerical Precision and Complex Data Types
+
+The library will support arbitrary precision via Boost.Multiprecision or MPFR, configurable by the user. Complex numbers will be handled seamlessly across bindings using `std::complex` or Eigen's complex types.
+
+-----
+
+## Core Modules (C++ Backend with Python Bindings)
+
+### Python Frontend (aqft\_py) Modules
+
+1.  **`aqft_curved.spacetime`**
+
+      * **Purpose**: Defines and manipulates curved spacetimes and handles differential geometry.
+      * **Key Classes/Methods**: `Spacetime` (metric definition, coordinate systems; methods for Christoffel symbols, Riemann tensor, etc.), `PredefinedSpacetime` (Minkowski, Schwarzschild, FLRW), `CoordinateChart` (local systems/transformations).
+
+2.  **`aqft_curved.field`**
+
+      * **Purpose**: Defines quantum fields in curved backgrounds.
+      * **Key Classes/Methods**: `ScalarField` (mass, coupling; methods for equation of motion, commutator), `FieldOperator` (applying to states, conjugation, Wick products). Long-term plans include `DiracField` and `VectorField`.
+
+3.  **`aqft_curved.algebra`**
+
+      * **Purpose**: Manages operator algebras fundamental to AQFT.
+      * **Key Classes/Methods**: `OperatorAlgebra` (generators, relations, commutator), `CausalRegion` (causal separation), `AlgebraicProduct` (non-commutative products, simplifications).
+
+4.  **`aqft_curved.state`**
+
+      * **Purpose**: Defines quantum states and computes correlation functions.
+      * **Key Classes/Methods**: `State` (methods for two-point function, expectation value), `VacuumState` (Hadamard, Bunch-Davies). `ThermalState` is a long-term goal.
+
+5.  **`aqft_curved.utils`**
+
+      * **Purpose**: Handles visualization and I/O operations.
+      * **Key Functions**: `plot_spacetime()`, `export_results()`, `load_spacetime()`.
+
+### C++ Backend (aqft\_cpp) Core Modules
+
+1.  **`aqft_core::metric`**
+
+      * **Purpose**: Performs geometric computations.
+      * **Key Classes/Methods**: `Metric` (Eigen matrices for components; methods for Christoffel symbols, geodesic integrator). Long-term plans include Vielbein and SpinConnection.
+
+2.  **`aqft_core::algebra`**
+
+      * **Purpose**: Manages operator and tensor algebra.
+      * **Key Classes/Methods**: `TensorExpression` (Eigen-based), `Operator` (commutator, Wick product), index management for contractions. Clifford algebra is a long-term goal.
+
+3.  **`aqft_core::numerical`**
+
+      * **Purpose**: Provides solvers for equations and functions.
+      * **Key Functions**: `solve_klein_gordon()` (using finite difference or ODE solvers via GSL/PETSc), `compute_green_function()`. Long-term plans include FEM via deal.II.
+
+4.  **`aqft_core::symbolic`**
+
+      * **Purpose**: Handles symbolic manipulations.
+      * **Key Functions**: `simplify_expression()`, `differentiate()` (leveraging GiNaC/SymEngine). Custom extensions may be developed if needed.
+
+5.  **`aqft_core::observables`**
+
+      * **Purpose**: Computes physical observables.
+      * **Key Functions**: Renormalized stress-energy tensor (adiabatic/Hadamard regularization). Long-term goals include particle number and anomaly calculations.
+
+6.  **`aqft_core::pipeline`**
+
+      * **Purpose**: Manages the symbolic-to-numerical translation process.
+      * **Key Functions**: `generate_numerical_function()`, `prepare_for_solver()`.
+
+7.  **`aqft_core::qinfo` (Long-term)**
+
+      * **Purpose**: Integrates quantum information concepts, particularly tensor networks for QFTCS.
+
+-----
+
+## Example Use Cases (Python API)
+
+Here are examples of how the Python API will be used:
+
+### A. Define Curved Spacetime and Compute Curvature (MVP)
+
+```python
+from aqft_curved.spacetime import Spacetime
+
+M = Spacetime.predefined("Schwarzschild", mass=1.0)
+M.set_coordinates("t r theta phi")
+print(M.riemann_tensor())
+```
+
+### B. Scalar Field Two-Point Function (MVP)
+
+```python
+from aqft_curved.field import ScalarField
+from aqft_curved.state import VacuumState
+
+field = ScalarField(M, mass=0.0, coupling="minimal")
+state = VacuumState(field, state_type="Hadamard")
+point1 = (0.0, 5.0, 0.0, 0.0)
+point2 = (0.1, 5.1, 0.0, 0.0)
+two_point = state.two_point_function(point1, point2, renormalized=True)
+print(f"Renormalized two-point function: {two_point}")
+```
+
+### C. Derive and Solve Field Equation (MVP)
+
+```python
+from aqft_curved.spacetime import Spacetime
+from aqft_curved.field import ScalarField
+
+M_FLRW = Spacetime.predefined("FLRW", scale_factor_a="a(t)")
+phi = ScalarField(M_FLRW, mass=0.1, coupling=0.0)
+kg_equation = phi.equation_of_motion()
+print(f"Klein-Gordon Equation: {kg_equation}")
+solution = M_FLRW.solve_field_equation(kg_equation, initial_conditions={"phi": 1.0, "dphi_dt": 0.0}, num_points=100)
+```
+
+-----
+
+## Development & Deployment
+
+### Build System (MVP)
+
+  * **C++**: CMake, incorporating presets and FetchContent for dependencies.
+  * **Python**: scikit-build-core and pybind11 for bindings and packaging.
+
+### Testing (MVP)
+
+  * **Unit Tests**: Catch2/Google Test for C++ and pytest for Python.
+  * **Integration Tests**: End-to-end testing via Jupyter notebooks, validating against analytical solutions (e.g., Unruh, Hawking effects).
+  * **Tools**: clang-tidy for static analysis and property-based testing.
+
+### Documentation (MVP)
+
+  * **User Guide**: Written in Markdown.
+  * **API Reference**: Generated using Sphinx/Doxygen with Breathe.
+  * **Tutorials**: Provided as Jupyter notebooks (e.g., Hadamard regularization in Schwarzschild spacetime).
+  * **Background**: References to foundational texts like Wald, Hollands & Wald will be included.
+
+### Packaging & Distribution (MVP)
+
+The library will be distributed as PyPI/conda-forge wheels, bundling the C++ library and aiming for minimal dependencies to ensure portability.
+
+### Versioning Strategy (MVP)
+
+Semantic versioning (MAJOR.MINOR.PATCH) will be adopted.
+
+### Performance and Scalability Considerations
+
+  * **Parallelism**: OpenMP will be utilized for shared-memory parallelism, with a focus on data locality optimization.
+  * **Memory Management**: RAII (Resource Acquisition Is Initialization) and smart pointers will be used for efficient memory handling.
+  * **Long-term**: Plans include GPU acceleration via CUDA/Thrust and hybrid parallelism.
+  * **Precision**: The library will support configurable arbitrary precision.
+
+-----
+
+## Future Enhancements (Long-Term Goals)
+
+Future development will expand to:
+
+  * Perturbative QFTs and higher-spin fields.
+  * Advanced renormalization techniques and interfaces with numerical relativity libraries (e.g., HDF5).
+  * Machine learning integration for advanced solvers.
+  * Quantum computing interfaces, especially for tensor networks.
+  * Exploration of category-theoretic AQFT structures.
+
+-----
+
+## Licensing (MVP)
+
+The project will be licensed under the MIT or Apache-2.0 license.
+
+-----
+
+## Development Roadmap
+
+  * **Phase 1 (MVP, 3-6 months)**: Focus on basic spacetime and field modules, core geometric and numerical functionalities in C++, support for scalar fields and Hadamard states, robust bindings, comprehensive tests, and initial documentation.
+  * **Phase 2 (6-12 months)**: Expansion to include more complex spacetimes (Kerr, de Sitter), refinement of PDE solvers, and optimization of algebraic operations.
+  * **Phase 3 (Ongoing)**: Development of advanced field types, tensor network integration, GPU acceleration, and further external library integrations.
+
+-----
+
+## Key Decisions and Rationale
+
+1.  **Tensor Algebra Library**: **Eigen** was chosen for its speed, modern design, and robust tensor support in scientific computing. It is a header-only library that integrates well with pybind11 and generally outperforms alternatives for PDE and tensor operations in physics.
+2.  **Symbolic Engine**: **GiNaC/SymEngine** will be used for the MVP. These provide fast C++-based symbolic computation, offer bridges to SymPy, and avoid the need to build a symbolic engine from scratch.
+3.  **PDE Solver Strategy**: An initial approach using **GSL/native finite difference** for the MVP will allow for a simpler start. **PETSc/deal.II** will be considered for long-term scalability and handling more complex geometries.
+4.  **Parallelism**: **OpenMP** is selected for shared-memory parallelism due to its ease of use with pragmas, and it can be hybridized with MPI if large-scale distributed parallelism becomes necessary.
+5.  **Bindings**: **pybind11** is the preferred choice for its lightweight nature, excellent support for modern C++, and efficient zero-copy data exchange.
+6.  **C++ Standard**: Targeting **C++20** enables the use of modern features like ranges and concepts for cleaner and more expressive code, while maintaining compatibility with tools available in 2025.
+7.  **Renormalization**: **Intrinsic methods** (adiabatic/Hadamard regularization) are deemed essential to obtain finite results in QFTCS.
+8.  **Predefined Spacetimes**: Inclusion of **Minkowski, Schwarzschild, and FLRW** spacetimes in the MVP will cover key phenomena such as Hawking radiation and provide foundational examples for users.
+
+-----
+
+## Evaluation of Python–C++ Split
+
+The architectural decision to split the library into a Python frontend and a C++ backend is well-justified and thoughtfully planned.
+
+### Strengths of the Current Approach
+
+  * **`pybind11` for Bindings**: The choice of `pybind11` is excellent. It's a modern, efficient, and flexible binding library that supports C++20+ features, enables zero-copy data transfer with NumPy arrays, and provides robust exception handling.
+  * **Clear Layering**: The architecture clearly separates responsibilities, with Python handling high-level abstractions and user interaction, and C++ managing computationally intensive tasks. This distinction is crucial for maintaining a thin interface and maximizing performance in the C++ core.
+  * **Robust Build System**: The combination of CMake for C++ and `scikit-build-core` for Python packaging is the industry standard for hybrid projects. This setup simplifies cross-platform builds and facilitates distribution via PyPI and `conda-forge`.
+  * **Well-Scoped MVP**: Focusing on free fields and linearized gravity initially is a pragmatic approach. It significantly reduces symbolic and numerical complexity, allowing for tighter development and testing cycles.
+  * **Modular C++ Backend**: The separation of symbolic, numerical, and algebraic engines within the C++ backend ensures clear API surfaces and prevents chaotic dependencies, promoting maintainability and extensibility.
+  * **Future-Proofing for Solvers**: While starting with GSL for numerical solvers keeps the initial CMake footprint minimal, the foresight to integrate more advanced solvers like PETSc or `deal.II` later is a wise strategy for long-term scalability.
+
+### Anticipated Challenges and Mitigation Strategies
+
+1.  **Binding Complex Types**:
+
+      * **Description**: Complex C++ types such as tensor expressions, symbolic operator products, or polymorphic PDE solvers can be challenging to expose effectively to Python.
+      * **Mitigation**: Use `py::class_<>` wrappers in `pybind11` with `std::shared_ptr` to manage object lifetimes. Explicitly define conversion helpers (`py::cast<...>()`) for data structures from Eigen, GiNaC, and other C++ libraries.
+
+2.  **Cross-Platform Build Complexity**:
+
+      * **Description**: Packaging a comprehensive C++20 library with multiple heavy dependencies (Eigen, GiNaC, GSL, PETSc, etc.) into Python wheels for Linux, Windows, and macOS can be a significant undertaking.
+      * **Mitigation**: Leverage `scikit-build-core` with `cibuildwheel` and `manylinux` to automate wheel building for various platforms. Consider implementing modular builds and optional features (e.g., `EXTRA_PDE=ON`) to reduce the complexity of the core distribution.
+
+3.  **Testing Symbolic-Numeric Pipeline Consistency**:
+
+      * **Description**: Ensuring that symbolic derivations align precisely with numerical evolutions (e.g., verifying that a numerically solved Klein-Gordon equation matches its symbolically derived form) requires rigorous testing.
+      * **Mitigation**: Develop "golden reference tests" by comparing numerical outputs against known analytical solutions or results from established symbolic libraries (like SymPy). Implement symbolic-numeric equivalence tests where applicable, such as verifying that different computational paths yield the same Green's function results.
+
+4.  **Memory Management and Ownership Semantics**:
+
+      * **Description**: Managing shared state and object lifetimes between Python and C++ for objects like `Spacetime` and `Field` can lead to subtle bugs if not handled carefully.
+      * **Mitigation**: Consistently use `std::shared_ptr` in C++ and bind these as `shared_ptr` to Python via `pybind11`. Expose `const` and non-`const` reference methods thoughtfully to prevent unintended mutations of C++ objects from the Python side.
+
+5.  **Documentation Toolchain Complexity**:
+
+      * **Description**: Integrating `pybind11` with Doxygen, Breathe, and Sphinx for comprehensive documentation can be intricate.
+      * **Mitigation**: Automate documentation generation within the CI/CD pipeline. Adhere to Doxygen-compatible docstring standards in C++ code to ensure that API documentation is consistently extracted and rendered.
+
+6.  **Error Propagation Across Layers**:
+
+      * **Description**: Critical C++ errors, such as metric singularities, invalid coordinate transformations, or problematic symbolic inputs, must be caught and re-raised as user-friendly Python exceptions.
+      * **Mitigation**: Wrap all C++ exceptions using `PYBIND11_THROW` and provide custom, context-rich error messages (e.g., "Metric singular at point X" instead of a generic C++ runtime error).
+
+### Strategic Advice
+
+1.  **Minimize Initial Binding Surface**: For the MVP, focus on exposing only the most critical core objects (e.g., `Metric`, `ScalarField`, `State`, `OperatorAlgebra`). Delay binding more complex structures like `TensorExpression` until they are demonstrably necessary for user workflows.
+2.  **Leverage SymPy as a DSL Frontend**: Consider using SymPy expressions in the Python frontend as a Domain-Specific Language (DSL) for defining symbolic inputs. These expressions can then be translated into GiNaC objects via `py::cast<...>()` on the C++ side. This approach can potentially avoid duplicating symbolic engine functionality where possible.
+3.  **Comprehensive Testing Frameworks**: Employ **Catch2** for C++ unit tests (known for its modern syntax and ease of use) and **pytest** for Python tests. Furthermore, integrate symbolic-numeric validation tests as executable Jupyter notebooks (using tools like `nbval` or `papermill`) to ensure end-to-end consistency.
+4.  **Adopt a Project Template**: Starting with a well-established project layout, such as those provided by `pybind/cmake_example` combined with `scikit-build/scikit-build-core` and a `pyproject.toml`, can significantly streamline setup and configuration.
+
+### Potential Missing Elements to Consider
+
+  * **Units and Dimensional Analysis**: Decide whether the library will only support natural units or if it will include robust dimensional analysis. SymPy offers capabilities in this area that could be integrated.
+  * **Coordinate Charts as Manifolds**: Clarify whether `CoordinateChart` objects will function merely as passive label systems or as active objects capable of performing pullbacks/pushforwards on differential forms and tensors, reflecting their role in manifold theory.
+  * **Error Tolerances and Warnings**: Implement mechanisms to warn users when computations approach physical limits (e.g., near Planck curvature) or encounter geodesic deviation singularities, providing crucial diagnostic feedback.
+  * **REPL/CLI Layer (Long-term)**: In the future, a command-line interface (CLI) or a Read-Eval-Print Loop (REPL) could significantly enhance user interaction and facilitate experimentation with metrics and field equations.
+
+### Summary of Project Status
+
+| Aspect                   | Status      | Evaluation                                            |
+| :----------------------- | :---------- | :---------------------------------------------------- |
+| Project Vision           | 🟢 **Outstanding** | Clear, ambitious, and well-defined.                   |
+| Binding Strategy         | 🟢 **Excellent** | Pybind11, zero-copy, and modular design are optimal. |
+| Anticipated Pain Points  | 🟡 **Manageable** | Cross-platform builds and symbolic-numeric matching are known challenges but have clear mitigation strategies. |
+| Performance Plan         | 🟢 **Realistic** | OpenMP for MVP with future GPU options is a sound approach. |
+| Extensibility            | 🟢 **Modular** | Modular C++ design and planned support for advanced FEM/PDE solvers promote future growth. |
+| Python Usability         | 🟢 **Strong** | Integration with SymPy and Jupyter-first examples will enhance user experience. |
+
+This project plan is exceptionally well-structured and professionally thought out. If you are aiming to develop a world-class hybrid scientific library for AQFT in curved spacetimes, you are absolutely on the right track.
